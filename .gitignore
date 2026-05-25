@@ -1,0 +1,8 @@
+.tausik/
+.tausik-lib/
+.claude/
+.mcp.json
+*.pyc
+__pycache__/
+.env
+data/*.db
