@@ -6,5 +6,6 @@
 __pycache__/
 .env
 data/*.db
+bot/data/
 ChatExport_*/
 output/
