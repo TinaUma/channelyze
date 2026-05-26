@@ -1,0 +1,36 @@
+name: Deploy Bot
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'bot/**'
+      - '.github/workflows/deploy.yml'
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create .env
+        run: |
+          cat > .env << 'ENVEOF'
+          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+          BOT_TOKEN=${{ secrets.BOT_TOKEN }}
+          ORDERS_CHANNEL_ID=${{ secrets.ORDERS_CHANNEL_ID }}
+          YOOMONEY_WALLET=${{ secrets.YOOMONEY_WALLET }}
+          ENVEOF
+
+      - name: Build and restart bot
+        working-directory: bot
+        run: docker compose up -d --build --force-recreate
+
+      - name: Health check
+        working-directory: bot
+        run: |
+          sleep 5
+          docker compose ps
+          docker compose logs --tail=20
