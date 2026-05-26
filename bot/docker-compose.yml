@@ -4,5 +4,9 @@ services:
     restart: unless-stopped
     env_file:
       - ../.env
+    environment:
+      - PROXY_URL=http://172.17.0.1:7890
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./data:/app/data

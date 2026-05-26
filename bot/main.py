@@ -1,7 +1,9 @@
 import asyncio
 import logging
+import os
 
 from aiogram import Bot, Dispatcher
+from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.fsm.storage.memory import MemoryStorage
 from dotenv import load_dotenv
 
@@ -17,7 +19,9 @@ logging.basicConfig(level=logging.INFO)
 async def main() -> None:
     create_tables()
 
-    bot = Bot(token=config.BOT_TOKEN)
+    proxy_url = os.environ.get("PROXY_URL")
+    session = AiohttpSession(proxy=proxy_url) if proxy_url else None
+    bot = Bot(token=config.BOT_TOKEN, session=session)
     dp = Dispatcher(storage=MemoryStorage())
 
     dp.include_router(start.router)
