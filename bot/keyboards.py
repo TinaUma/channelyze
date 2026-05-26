@@ -51,6 +51,28 @@ SERVICE_PRICES: dict[str, str] = {
     "karma-lap": "3 500 ₽",
 }
 
+# Numeric prices for YuMoney payment link (None = по запросу)
+SERVICE_PRICES_NUMERIC: dict[str, int | None] = {
+    "trojnoj-portret": 2500,
+    "energeticheskij-portret": 3000,
+    "osnovnye-aspekty": 5000,
+    "razbor-natalnoj-karty": 8000,
+    "sinastriya": 10000,
+    "astrologicheskij-audit-partnyorstva": 7000,
+    "mayak-spetsialnyj-paket": 10000,
+    "astro-detoks-rasputyvanie-vetvej-sudby": 10000,
+    "karta-urokov-astrologicheskij-analiz-povtoryayuschihsya-stsenariev": None,
+    "negordiev-uzel": 3000,
+    "karmicheskij-audit": 5000,
+    "rasshifrovka-solyara": None,
+    "vedicheskij-slepok-tvoya-zvyozdnaya-zadacha": 3500,
+    "vedicheskaya-sinastriya-karmicheskij-kod-pary": 5500,
+    "razbor-natalnoj-karty-rebyonka": 6000,
+    "karma-lap": 3500,
+}
+
+YOOMONEY_WALLET = "4100119540100972"
+
 
 def categories_keyboard() -> InlineKeyboardMarkup:
     buttons = [
@@ -79,6 +101,16 @@ def cancel_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[[InlineKeyboardButton(text="Отмена", callback_data="cancel")]]
     )
+
+
+def payment_keyboard(slug: str) -> InlineKeyboardMarkup:
+    amount = SERVICE_PRICES_NUMERIC.get(slug)
+    buttons = []
+    if amount:
+        url = f"https://yoomoney.ru/to/{YOOMONEY_WALLET}/{amount}"
+        buttons.append([InlineKeyboardButton(text="💳 Оплатить через ЮMoney", url=url)])
+    buttons.append([InlineKeyboardButton(text="Отмена", callback_data="cancel")])
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
 def service_name_by_slug(slug: str) -> str:

@@ -8,6 +8,7 @@ from bot.db import save_order
 from bot.keyboards import (
     cancel_keyboard,
     categories_keyboard,
+    payment_keyboard,
     service_name_by_slug,
     service_price_by_slug,
     services_keyboard,
@@ -23,7 +24,8 @@ router = Router()
 @router.callback_query(F.data.startswith("cat:"))
 async def on_category(callback: CallbackQuery, state: FSMContext) -> None:
     category = callback.data.removeprefix("cat:")
-    await callback.message.edit_text(
+    await callback.message.delete()
+    await callback.message.answer(
         f"Категория: <b>{category}</b>\n\nВыберите услугу:",
         reply_markup=services_keyboard(category),
         parse_mode="HTML",
@@ -34,7 +36,8 @@ async def on_category(callback: CallbackQuery, state: FSMContext) -> None:
 @router.callback_query(F.data == "back:categories")
 async def on_back_categories(callback: CallbackQuery, state: FSMContext) -> None:
     await state.clear()
-    await callback.message.edit_text(
+    await callback.message.delete()
+    await callback.message.answer(
         "Выберите категорию услуги:",
         reply_markup=categories_keyboard(),
     )
@@ -53,7 +56,8 @@ async def on_service_selected(callback: CallbackQuery, state: FSMContext) -> Non
     await state.update_data(service_slug=slug, service_name=name, service_price=price)
     await state.set_state(OrderFlow.waiting_name)
 
-    await callback.message.edit_text(
+    await callback.message.delete()
+    await callback.message.answer(
         f"Вы выбрали: <b>{name}</b>\nСтоимость: {price}\n\n"
         "Как вас зовут? (Введите имя)",
         reply_markup=cancel_keyboard(),
@@ -98,6 +102,7 @@ async def on_birth_time(message: Message, state: FSMContext) -> None:
 @router.message(OrderFlow.waiting_birth_place)
 async def on_birth_place(message: Message, state: FSMContext) -> None:
     data = await state.get_data()
+    slug = data.get("service_slug", "")
     await state.update_data(birth_place=message.text.strip())
     await state.set_state(OrderFlow.waiting_payment)
 
@@ -109,7 +114,7 @@ async def on_birth_place(message: Message, state: FSMContext) -> None:
         f"Переведите <b>{price}</b> на ЮMoney:\n"
         f"<code>{wallet}</code>\n\n"
         f"После оплаты пришлите скриншот чека 📎",
-        reply_markup=cancel_keyboard(),
+        reply_markup=payment_keyboard(slug),
         parse_mode="HTML",
     )
 
@@ -133,7 +138,6 @@ async def on_payment_photo(message: Message, state: FSMContext) -> None:
         payment_screenshot_id=photo_id,
     )
 
-    # Forward to orders channel
     summary = (
         f"🔔 <b>Новый заказ #{order_id}</b>\n\n"
         f"Услуга: {data['service_name']}\n"
@@ -160,9 +164,11 @@ async def on_payment_photo(message: Message, state: FSMContext) -> None:
 
 @router.message(OrderFlow.waiting_payment)
 async def on_payment_not_photo(message: Message, state: FSMContext) -> None:
+    data = await state.get_data()
+    slug = data.get("service_slug", "")
     await message.answer(
         "Пожалуйста, пришлите именно скриншот (фото) чека оплаты 📎",
-        reply_markup=cancel_keyboard(),
+        reply_markup=payment_keyboard(slug),
     )
 
 
