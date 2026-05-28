@@ -1,7 +1,31 @@
+import re
+from datetime import datetime
+
 from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
+
+
+def _valid_date(text: str) -> bool:
+    try:
+        datetime.strptime(text, "%d.%m.%Y")
+        return True
+    except ValueError:
+        return False
+
+
+_TIME_SKIP = {"не знаю", "незнаю", "нет", "неизвестно", "?", "-"}
+
+
+def _valid_time(text: str) -> bool:
+    if text.lower() in _TIME_SKIP:
+        return True
+    m = re.fullmatch(r"(\d{1,2}):(\d{2})", text)
+    if m:
+        return 0 <= int(m.group(1)) <= 23 and 0 <= int(m.group(2)) <= 59
+    return False
+
 
 from bot import config
 from bot.db import save_order
@@ -81,7 +105,14 @@ async def on_name(message: Message, state: FSMContext) -> None:
 
 @router.message(OrderFlow.waiting_birth_date)
 async def on_birth_date(message: Message, state: FSMContext) -> None:
-    await state.update_data(birth_date=message.text.strip())
+    text = message.text.strip()
+    if not _valid_date(text):
+        await message.answer(
+            "Неверная дата. Введите в формате ДД.ММ.ГГГГ (например: 15.03.1990)",
+            reply_markup=cancel_keyboard(),
+        )
+        return
+    await state.update_data(birth_date=text)
     await state.set_state(OrderFlow.waiting_birth_time)
     await message.answer(
         "Введите время рождения (например: 14:30 или «не знаю»)",
@@ -91,7 +122,14 @@ async def on_birth_date(message: Message, state: FSMContext) -> None:
 
 @router.message(OrderFlow.waiting_birth_time)
 async def on_birth_time(message: Message, state: FSMContext) -> None:
-    await state.update_data(birth_time=message.text.strip())
+    text = message.text.strip()
+    if not _valid_time(text):
+        await message.answer(
+            "Неверный формат. Введите время как ЧЧ:ММ (например: 14:30) или напишите «не знаю»",
+            reply_markup=cancel_keyboard(),
+        )
+        return
+    await state.update_data(birth_time=text)
     await state.set_state(OrderFlow.waiting_birth_place)
     await message.answer(
         "Введите место рождения (город, страна)",

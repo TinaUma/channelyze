@@ -106,11 +106,7 @@ def cancel_keyboard() -> InlineKeyboardMarkup:
 def payment_keyboard(slug: str) -> InlineKeyboardMarkup:
     amount = SERVICE_PRICES_NUMERIC.get(slug)
     if amount:
-        url = (
-            f"https://yoomoney.ru/quickpay/confirm"
-            f"?receiver={YOOMONEY_WALLET}&sum={amount}&paymentType=AC"
-            f"&targets=Астрологическая+консультация"
-        )
+        url = f"https://yoomoney.ru/to/{YOOMONEY_WALLET}/{amount}"
     else:
         url = f"https://yoomoney.ru/to/{YOOMONEY_WALLET}"
     return InlineKeyboardMarkup(
