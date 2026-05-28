@@ -1,5 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
+from bot import config
+
 SERVICES: dict[str, list[tuple[str, str]]] = {
     "Самопознание": [
         ("Тройной портрет", "trojnoj-portret"),
@@ -71,8 +73,6 @@ SERVICE_PRICES_NUMERIC: dict[str, int | None] = {
     "karma-lap": 3500,
 }
 
-YOOMONEY_WALLET = "4100119540100972"
-
 
 def categories_keyboard() -> InlineKeyboardMarkup:
     buttons = [
@@ -106,9 +106,9 @@ def cancel_keyboard() -> InlineKeyboardMarkup:
 def payment_keyboard(slug: str) -> InlineKeyboardMarkup:
     amount = SERVICE_PRICES_NUMERIC.get(slug)
     if amount:
-        url = f"https://yoomoney.ru/to/{YOOMONEY_WALLET}/{amount}"
+        url = f"https://yoomoney.ru/to/{config.YOOMONEY_WALLET}/{amount}"
     else:
-        url = f"https://yoomoney.ru/to/{YOOMONEY_WALLET}"
+        url = f"https://yoomoney.ru/to/{config.YOOMONEY_WALLET}"
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="💳 Оплатить через ЮMoney", url=url)],
