@@ -105,12 +105,16 @@ def cancel_keyboard() -> InlineKeyboardMarkup:
 
 def payment_keyboard(slug: str) -> InlineKeyboardMarkup:
     amount = SERVICE_PRICES_NUMERIC.get(slug)
-    buttons = []
     if amount:
         url = f"https://yoomoney.ru/to/{YOOMONEY_WALLET}/{amount}"
-        buttons.append([InlineKeyboardButton(text="💳 Оплатить через ЮMoney", url=url)])
-    buttons.append([InlineKeyboardButton(text="Отмена", callback_data="cancel")])
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
+    else:
+        url = f"https://yoomoney.ru/to/{YOOMONEY_WALLET}"
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="💳 Оплатить через ЮMoney", url=url)],
+            [InlineKeyboardButton(text="Отмена", callback_data="cancel")],
+        ]
+    )
 
 
 def service_name_by_slug(slug: str) -> str:
