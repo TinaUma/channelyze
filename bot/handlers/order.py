@@ -24,7 +24,7 @@ router = Router()
 @router.callback_query(F.data.startswith("cat:"))
 async def on_category(callback: CallbackQuery, state: FSMContext) -> None:
     category = callback.data.removeprefix("cat:")
-    await callback.message.delete()
+    await callback.message.edit_reply_markup(reply_markup=None)
     await callback.message.answer(
         f"Категория: <b>{category}</b>\n\nВыберите услугу:",
         reply_markup=services_keyboard(category),
@@ -36,7 +36,7 @@ async def on_category(callback: CallbackQuery, state: FSMContext) -> None:
 @router.callback_query(F.data == "back:categories")
 async def on_back_categories(callback: CallbackQuery, state: FSMContext) -> None:
     await state.clear()
-    await callback.message.delete()
+    await callback.message.edit_reply_markup(reply_markup=None)
     await callback.message.answer(
         "Выберите категорию услуги:",
         reply_markup=categories_keyboard(),
@@ -56,7 +56,7 @@ async def on_service_selected(callback: CallbackQuery, state: FSMContext) -> Non
     await state.update_data(service_slug=slug, service_name=name, service_price=price)
     await state.set_state(OrderFlow.waiting_name)
 
-    await callback.message.delete()
+    await callback.message.edit_reply_markup(reply_markup=None)
     await callback.message.answer(
         f"Вы выбрали: <b>{name}</b>\nСтоимость: {price}\n\n"
         "Как вас зовут? (Введите имя)",
